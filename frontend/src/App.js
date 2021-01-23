@@ -57,7 +57,7 @@ const App = () => {
 
   return (
     <div>
-      {user && location.pathname !== '/dashboard' && !location.pathname.startsWith('/api/strava/callback') && (
+      {Object.keys(user).length !== 0 && location.pathname !== '/dashboard' && !location.pathname.startsWith('/api/strava/callback') && (
         <Redirect to='/dashboard' />
       )}
       <Switch>
