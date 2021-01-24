@@ -9,8 +9,10 @@ const Dashboard = props => {
   useEffect(() => {
     if (props.user.stravaEnabled && activities.length === 0) {
       if (new Date(props.user.stravaExpiresAt * 1000) < Date.now()) {
+        console.log('refreshing token fe')
         refreshToken(props.user.stravaRefreshToken, props.user.userId)
       } else {
+        console.log('get activities')
         fetch(`https://www.strava.com/api/v3/athlete/activities`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${props.user.stravaAccessToken}` }
@@ -22,7 +24,9 @@ const Dashboard = props => {
   })
 
   const refreshToken = async (refresh, userId) => {
+    console.log('function calling')
 		const res = await newStravaToken(refresh, userId);
+    console.log(res)
 		if (res.success) {
       props.updateRefresh(res.data);
     }
