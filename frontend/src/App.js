@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {Switch, Route, useLocation, Redirect, useHistory} from "react-router-dom";
 import Home from './Home.js';
-import { createNewUser, signinUser, authenticateUser, stravaAuth } from './dbAPI';
+import { createNewUser, signinUser, authenticateUser, stravaAuth, stravaWebhookSetupResponse } from './dbAPI';
 import Dashboard from './Dashboard.js';
 
 const App = () => {
@@ -22,11 +22,22 @@ const App = () => {
     }
   })
 
+  useEffect(() => {
+    if (location.pathname.startsWith('/api/strava/webhook')) {
+      const challenge = location.search.split('&')[1].substring(14)
+      stravaWebhookSetup(challenge);
+    }
+  })
+
   const stravaConnect = async (code, userId) => {
     const res = await stravaAuth(code, userId);
     if (res.success) {
       history.push('/dashboard')
     }
+  }
+
+  const stravaWebhookSetup = async (challenge) => {
+    await stravaWebhookSetupResponse(challenge);
   }
 
   const authUser = async () => {

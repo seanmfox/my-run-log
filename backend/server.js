@@ -142,12 +142,36 @@ router.post('/strava/refresh', (req, res) => {
 	})
 })
 
+// router.get('/strava/webhook', (req, res) => {
+
+
+// 	axios.post(`https://www.strava.com/api/v3/push_subscriptions`, {'hub.challenge': req.body.challenge})
+// 	.then((response) => {
+// 		return res.json({success: true})
+// 	})
+// })
+
+router.post('/strava/webhook', (req, res) => {
+
+  console.log("webhook event received!", req.query, req.body);
+  res.status(200).send('EVENT_RECEIVED');
+})
+
 app.use('/api', router);
 app.use('/api/users', userRoutes);
 
 if (process.env.NODE_ENV === 'production') {
 	// Serve any static files
 	app.use(express.static(`${__dirname}/../frontend/build`));
+
+	app.get('/api/strava/webhook', (req, res) => {
+		let mode = req.query['hub.mode'];
+		let challenge = req.query['hub.challenge'];
+		if (mode === 'subscribe') {     
+			console.log('WEBHOOK_VERIFIED');
+			res.json({"hub.challenge":challenge});  
+		}
+	})
 
 	// Handle React routing, return all requests to React app
 	app.get('*', (req, res) => {
