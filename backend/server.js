@@ -116,6 +116,7 @@ router.post('/strava/callback', (req, res) => {
 			})
 		})
 	})
+	.catch(error => console.log(error))
 })
 
 router.post('/strava/refresh', (req, res) => {
@@ -140,6 +141,7 @@ router.post('/strava/refresh', (req, res) => {
 			})
 		})
 	})
+	.catch(error => console.log(error))
 })
 
 // router.get('/strava/webhook', (req, res) => {
