@@ -120,7 +120,8 @@ router.post('/strava/callback', (req, res) => {
 })
 
 router.post('/strava/refresh', (req, res) => {
-
+	console.log('requesting refresh token')
+	console.log(req.body)
 	axios.post(`https://www.strava.com/oauth/token`, {client_id: 26482, client_secret: process.env.STRAVA_SECRET, refresh_token: req.body.refreshToken, grant_type: 'refresh_token'})
 	.then((response) => {
 		User.findById(req.body.userId, (error, user) => {
