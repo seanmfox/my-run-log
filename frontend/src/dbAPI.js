@@ -43,10 +43,10 @@ export async function newStravaToken(refreshToken, userId) {
 	}).then(res => res.json());
 }
 
-export async function stravaWebhookSetupResponse(challenge) {
-	return fetch(`/api/strava/webhook`, {
-		method: 'GET',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ challenge })
-	}).then(res => res.json());
-}
+// export async function stravaWebhookSetupResponse(challenge) {
+// 	return fetch(`/api/strava/webhook`, {
+// 		method: 'GET',
+// 		headers: { 'Content-Type': 'application/json' },
+// 		body: JSON.stringify({ challenge })
+// 	}).then(res => res.json());
+// }
