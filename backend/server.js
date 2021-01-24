@@ -116,7 +116,10 @@ router.post('/strava/callback', (req, res) => {
 			})
 		})
 	})
-	.catch(error => console.log(error.response.data.errors))
+	.catch(error => {
+		console.log(error.response.data.errors)
+		return res.json({success: false})
+	})
 })
 
 router.post('/strava/refresh', (req, res) => {
@@ -142,7 +145,10 @@ router.post('/strava/refresh', (req, res) => {
 			})
 		})
 	})
-	.catch(error => console.log(error.response.data.errors))
+	.catch(error => {
+		console.log(error.response.data.errors)
+		return res.json({success: false})
+	})
 })
 
 // router.get('/strava/webhook', (req, res) => {
