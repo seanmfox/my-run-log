@@ -123,8 +123,7 @@ router.post('/strava/callback', (req, res) => {
 })
 
 router.post('/strava/refresh', (req, res) => {
-	console.log('requesting refresh token')
-	console.log(req.body)
+
 	axios.post(`https://www.strava.com/oauth/token`, {client_id: 26482, client_secret: process.env.STRAVA_SECRET, refresh_token: req.body.refreshToken, grant_type: 'refresh_token'})
 	.then((response) => {
 		User.findById(req.body.userId, (error, user) => {
@@ -146,20 +145,19 @@ router.post('/strava/refresh', (req, res) => {
 		})
 	})
 	.catch(error => {
-		console.log(error)
 		console.log(error.response.data.errors)
 		return res.json({success: false})
 	})
 })
 
-// router.get('/strava/webhook', (req, res) => {
+router.get('/strava/webhook', (req, res) => {
 
 
-// 	axios.post(`https://www.strava.com/api/v3/push_subscriptions`, {'hub.challenge': req.body.challenge})
-// 	.then((response) => {
-// 		return res.json({success: true})
-// 	})
-// })
+	axios.post(`https://www.strava.com/api/v3/push_subscriptions`, {'hub.challenge': req.body.challenge})
+	.then((response) => {
+		return res.json({success: true})
+	})
+})
 
 router.post('/strava/webhook', (req, res) => {
 
