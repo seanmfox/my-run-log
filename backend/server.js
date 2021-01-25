@@ -150,15 +150,6 @@ router.post('/strava/refresh', (req, res) => {
 	})
 })
 
-router.get('/strava/webhook', (req, res) => {
-
-
-	axios.post(`https://www.strava.com/api/v3/push_subscriptions`, {'hub.challenge': req.body.challenge})
-	.then((response) => {
-		return res.json({success: true})
-	})
-})
-
 router.post('/strava/webhook', (req, res) => {
 
   console.log("webhook event received!", req.query, req.body);
