@@ -146,6 +146,7 @@ router.post('/strava/refresh', (req, res) => {
 		})
 	})
 	.catch(error => {
+		console.log(error)
 		console.log(error.response.data.errors)
 		return res.json({success: false})
 	})
