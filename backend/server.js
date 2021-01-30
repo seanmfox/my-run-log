@@ -163,25 +163,24 @@ router.post('/strava/activitypull', (req, res) => {
 		url: 'https://www.strava.com/api/v3/athlete/activities',
 		headers: {'Authorization': 'Bearer ' + req.body.token}
 	}).then((response) => {
-		// User.findById(req.body.userId, (error, user) => {
-		// 	user.stravaEnabled = true;
-		// 	user.stravaRefreshToken = response.data.refresh_token;
-		// 	user.stravaAccessToken = response.data.access_token;
-		// 	user.stravaExpiresAt = response.data.expires_at;
-		// 	user.stravaExpiresIn = response.data.expires_in;
-		// 	user.stravaAthleteData = JSON.stringify(response.data.athlete);
-		// 	user.save(err => {
-		// 		if (err) return res.json({ success: false, error: err });
-		// 		return res.json({ success: true, data: {
-		// 			stravaRefreshToken: response.data.refresh_token,
-		// 			stravaAccessToken: response.data.access_token,
-		// 			stravaExpiresAt: response.data.expires_at,
-		// 			stravaExpiresIn: response.data.expires_in
-		// 		} });
-		// 	})
-		// })
-		console.log(response.data[0])
-		return res.json({success: true, data: response.data})
+		User.findById(req.body.userId, (error, user) => {
+			const activityIds = user.activities.map(a => a.stravaId)
+			response.data.forEach(a => { 
+				if (!activityIds.includes(a.id)) {
+					user.activities.push({
+						name: a.name,
+						distance: a.distance,
+						date: a.start_date,
+						duration: a.moving_time,
+						stravaId: a.id
+					})
+				}
+			})
+			user.save(err => {
+				if (err) return res.json({ success: false, error: err });
+				return res.json({ success: true, data: user.activities});
+			})
+		})
 	}).catch(error => {
 		console.log(error.response.data.errors)
 		return res.json({success: false})
@@ -190,11 +189,37 @@ router.post('/strava/activitypull', (req, res) => {
 
 router.post('/strava/webhook', (req, res) => {
   console.log("webhook event received!", req.query, req.body);
-	User.findOne({stravaAthleteId: req.body.owner_id}, (err, user) => {
-		if (user) {
-			console.log(user)
-		}
-	})
+	if (req.body.object_type === 'activity') {
+		User.findOne({stravaAthleteId: req.body.owner_id}, (err, user) => {
+			if (user) {
+				if (req.body.aspect_type === 'create') {
+					axios({
+						url: `https://www.strava.com/api/v3/activities/${req.body.object_id}`,
+						headers: {'Authorization': 'Bearer ' + user.stravaAccessToken}
+					}).then((response) => {
+						user.activities.push({
+							name: response.data.name,
+							distance: response.data.distance,
+							date: response.data.start_date,
+							duration: response.data.moving_time,
+							stravaId: req.body.object_id
+						})
+						user.save(err => {
+							if (err) console.log(err);
+						})
+					}).catch(error => {
+						console.log(error.response.data.errors)
+					})
+				} else if (req.body.aspect_type === 'update' && req.body.updates.title) {
+					const activity = user.activities.id(req.body.object_id);
+					if (activity) {
+						activity.name = req.body.updates.title;
+						user.save(err => console.log(err))
+					}
+				}
+			}
+		})
+	}
   res.status(200).send('EVENT_RECEIVED');
 })
 

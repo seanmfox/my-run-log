@@ -5,7 +5,7 @@ const ActivitySchema = new Schema(
 	{
 		name: String,
 		distance: Number,
-		date: Number,
+		date: Date,
 		duration: Number,
 		stravaId: Number
 	}
