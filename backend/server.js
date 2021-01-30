@@ -206,6 +206,7 @@ router.post('/strava/webhook', (req, res) => {
 						})
 						user.save(err => {
 							if (err) console.log(err);
+							console.log('saving new event', response.data)
 						})
 					}).catch(error => {
 						console.log(error.response.data.errors)
@@ -216,8 +217,8 @@ router.post('/strava/webhook', (req, res) => {
 					if (activity) {
 						activity.name = req.body.updates.title;
 						user.save(err => {
-							console.log('saving event update', activity)
-							console.log(err)
+							if (err) console.log('saving event update', activity);
+							console.log(err);
 						})
 					}
 				}
