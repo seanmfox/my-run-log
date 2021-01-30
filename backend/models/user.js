@@ -1,6 +1,16 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const ActivitySchema = new Schema(
+	{
+		name: String,
+		distance: Number,
+		date: Number,
+		duration: Number,
+		stravaId: Number
+	}
+)
+
 const UserSchema = new Schema(
 	{
 		fname: String,
@@ -12,7 +22,8 @@ const UserSchema = new Schema(
 		stravaAccessToken: String,
 		stravaExpiresAt: Number,
 		stravaExpiresIn: Number,
-		stravaAthleteData: String
+		stravaAthleteId: Number,
+		activities: [ActivitySchema]
 	},
 	{ timestamps: true }
 );

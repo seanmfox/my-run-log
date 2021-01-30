@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { newStravaToken } from './dbAPI';
+import { newStravaToken, stravaInitialPull } from './dbAPI';
 
 
 const Dashboard = props => {
@@ -11,12 +11,13 @@ const Dashboard = props => {
       if (new Date(props.user.stravaExpiresAt * 1000) < Date.now()) {
         refreshToken(props.user.stravaRefreshToken, props.user.userId)
       } else {
-        fetch(`https://www.strava.com/api/v3/athlete/activities`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${props.user.stravaAccessToken}` }
-          }).then(res => res.json()).then(data => {
-            setActivities(data)
-            console.log(data)});
+        stravaActivitySet(props.user.stravaAccessToken, props.user.userId)
+        // fetch(`https://www.strava.com/api/v3/athlete/activities`, {
+        //     method: 'GET',
+        //     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${props.user.stravaAccessToken}` }
+        //   }).then(res => res.json()).then(data => {
+        //     setActivities(data)
+        //     console.log(data)});
       }
     }
   })
@@ -28,6 +29,13 @@ const Dashboard = props => {
       props.updateRefresh(res.data);
     }
 	}
+
+  const stravaActivitySet = async (token, userId) => {
+    const res = await stravaInitialPull(token, userId)
+    if (res.success) {
+      setActivities(res.data)
+    }
+  }
 
   let grantDomain = '';
   if (process.env.NODE_ENV === 'production') {

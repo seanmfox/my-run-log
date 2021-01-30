@@ -68,6 +68,13 @@ router.post('/usersignin/', (req, res) => {
 					fname: doc.fname,
 					lname: doc.lname,
 					email: doc.email,
+					stravaEnabled: doc.stravaEnabled,
+					stravaRefreshToken: doc.stravaRefreshToken,
+					stravaAccessToken: doc.stravaAccessToken,
+					stravaExpiresAt: doc.stravaExpiresAt,
+					stravaExpiresIn: doc.stravaExpiresIn,
+					stravaAthleteId: doc.stravaAthleteId,
+					stravaActivities: doc.activities
 				}
 			});
 		});
@@ -92,7 +99,8 @@ router.get('/authuser', (req, res) => {
 					stravaAccessToken: user.stravaAccessToken,
 					stravaExpiresAt: user.stravaExpiresAt,
 					stravaExpiresIn: user.stravaExpiresIn,
-					stravaAthleteData: user.stravaAthleteData
+					stravaAthleteId: user.stravaAthleteId,
+					stravaActivities: user.activities
 				}
 			});
 		});
@@ -109,7 +117,7 @@ router.post('/strava/callback', (req, res) => {
 			user.stravaAccessToken = response.data.access_token;
 			user.stravaExpiresAt = response.data.expires_at;
 			user.stravaExpiresIn = response.data.expires_in;
-			user.stravaAthleteData = JSON.stringify(response.data.athlete);
+			user.stravaAthleteId = response.data.athlete.id;
 			user.save(err => {
 				if (err) return res.json({ success: false, error: err });
 				return res.json({ success: true });
@@ -132,7 +140,6 @@ router.post('/strava/refresh', (req, res) => {
 			user.stravaAccessToken = response.data.access_token;
 			user.stravaExpiresAt = response.data.expires_at;
 			user.stravaExpiresIn = response.data.expires_in;
-			user.stravaAthleteData = JSON.stringify(response.data.athlete);
 			user.save(err => {
 				if (err) return res.json({ success: false, error: err });
 				return res.json({ success: true, data: {
@@ -150,9 +157,44 @@ router.post('/strava/refresh', (req, res) => {
 	})
 })
 
-router.post('/strava/webhook', (req, res) => {
+router.post('/strava/activitypull', (req, res) => {
 
+	axios({
+		url: 'https://www.strava.com/api/v3/athlete/activities',
+		headers: {'Authorization': 'Bearer ' + req.body.token}
+	}).then((response) => {
+		// User.findById(req.body.userId, (error, user) => {
+		// 	user.stravaEnabled = true;
+		// 	user.stravaRefreshToken = response.data.refresh_token;
+		// 	user.stravaAccessToken = response.data.access_token;
+		// 	user.stravaExpiresAt = response.data.expires_at;
+		// 	user.stravaExpiresIn = response.data.expires_in;
+		// 	user.stravaAthleteData = JSON.stringify(response.data.athlete);
+		// 	user.save(err => {
+		// 		if (err) return res.json({ success: false, error: err });
+		// 		return res.json({ success: true, data: {
+		// 			stravaRefreshToken: response.data.refresh_token,
+		// 			stravaAccessToken: response.data.access_token,
+		// 			stravaExpiresAt: response.data.expires_at,
+		// 			stravaExpiresIn: response.data.expires_in
+		// 		} });
+		// 	})
+		// })
+		console.log(response.data[0])
+		return res.json({success: true, data: response.data})
+	}).catch(error => {
+		console.log(error.response.data.errors)
+		return res.json({success: false})
+	})
+})
+
+router.post('/strava/webhook', (req, res) => {
   console.log("webhook event received!", req.query, req.body);
+	User.findOne({stravaAthleteId: req.body.owner_id}, (err, user) => {
+		if (user) {
+			console.log(user)
+		}
+	})
   res.status(200).send('EVENT_RECEIVED');
 })
 

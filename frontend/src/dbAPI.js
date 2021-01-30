@@ -50,3 +50,11 @@ export async function stravaWebhookSetupResponse(challenge) {
 		body: JSON.stringify({ challenge })
 	}).then(res => res.json());
 }
+
+export async function stravaInitialPull(token, userId) {
+	return fetch(`/api/strava/activitypull`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ token, userId })
+	}).then(res => res.json());
+}
