@@ -210,11 +210,15 @@ router.post('/strava/webhook', (req, res) => {
 					}).catch(error => {
 						console.log(error.response.data.errors)
 					})
-				} else if (req.body.aspect_type === 'update' && req.body.updates.title) {
+				} else if (req.body.aspect_type === 'update' && 'title' in req.body.updates) {
+					console.log('starting the save process')
 					const activity = user.activities.id(req.body.object_id);
 					if (activity) {
 						activity.name = req.body.updates.title;
-						user.save(err => console.log(err))
+						user.save(err => {
+							console.log('saving event update', activity)
+							console.log(err)
+						})
 					}
 				}
 			}
