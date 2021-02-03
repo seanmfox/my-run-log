@@ -164,7 +164,7 @@ router.post('/strava/activitypull', (req, res) => {
 		headers: {'Authorization': 'Bearer ' + req.body.token}
 	}).then((response) => {
 		User.findById(req.body.userId, (error, user) => {
-			const activityIds = user.activities.map(a => a.stravaId)
+			const activityIds = user.activities.map(a => a._id)
 			response.data.forEach(a => { 
 				if (!activityIds.includes(a.id)) {
 					user.activities.push({
@@ -172,7 +172,7 @@ router.post('/strava/activitypull', (req, res) => {
 						distance: a.distance,
 						date: a.start_date,
 						duration: a.moving_time,
-						stravaId: a.id
+						_id: a.id
 					})
 				}
 			})
@@ -193,35 +193,69 @@ router.post('/strava/webhook', (req, res) => {
 		User.findOne({stravaAthleteId: req.body.owner_id}, (err, user) => {
 			if (user) {
 				if (req.body.aspect_type === 'create') {
-					axios({
-						url: `https://www.strava.com/api/v3/activities/${req.body.object_id}`,
-						headers: {'Authorization': 'Bearer ' + user.stravaAccessToken}
-					}).then((response) => {
-						user.activities.push({
-							name: response.data.name,
-							distance: response.data.distance,
-							date: response.data.start_date,
-							duration: response.data.moving_time,
-							stravaId: req.body.object_id
+					if (new Date(user.stravaExpiresAt * 1000) < Date.now()) {
+						axios.post(`https://www.strava.com/oauth/token`, {client_id: 26482, client_secret: process.env.STRAVA_SECRET, refresh_token: user.stravaRefreshToken, grant_type: 'refresh_token'})
+						.then((response) => {
+							user.stravaRefreshToken = response.data.refresh_token;
+							user.stravaAccessToken = response.data.access_token;
+							user.stravaExpiresAt = response.data.expires_at;
+							user.stravaExpiresIn = response.data.expires_in;
+
+							axios({
+								url: `https://www.strava.com/api/v3/activities/${req.body.object_id}`,
+								headers: {'Authorization': 'Bearer ' + response.data.access_token}
+							}).then((response) => {
+								user.activities.push({
+									name: response.data.name,
+									distance: response.data.distance,
+									date: response.data.start_date,
+									duration: response.data.moving_time,
+									_id: req.body.object_id
+								})
+								user.save(err => {
+									if (err) console.log(err);
+									console.log('saving new event')
+								})
+							}).catch(error => {
+								console.log(error.response.data.errors)
+							})
 						})
-						user.save(err => {
-							if (err) console.log(err);
-							console.log('saving new event', response.data)
+						.catch(error => {
+							console.log(error.response.data.errors)
 						})
-					}).catch(error => {
-						console.log(error.response.data.errors)
-					})
+					} else {
+
+						axios({
+							url: `https://www.strava.com/api/v3/activities/${req.body.object_id}`,
+							headers: {'Authorization': 'Bearer ' + user.stravaAccessToken}
+						}).then((response) => {
+							user.activities.push({
+								name: response.data.name,
+								distance: response.data.distance,
+								date: response.data.start_date,
+								duration: response.data.moving_time,
+								_id: req.body.object_id
+							})
+							user.save(err => {
+								if (err) console.log(err);
+								console.log('saving new event')
+							})
+						}).catch(error => {
+							console.log(error.response.data.errors)
+						})
+					}
 				} else if (req.body.aspect_type === 'update' && 'title' in req.body.updates) {
-					console.log('starting the save process')
 					const activity = user.activities.id(req.body.object_id);
 					if (activity) {
 						activity.name = req.body.updates.title;
 						user.save(err => {
-							if (err) console.log('saving event update', activity);
-							console.log(err);
+							if (err) console.log('error', err);
+							console.log('saving event update', activity);
 						})
 					}
 				}
+			} else {
+				console.log(err)
 			}
 		})
 	}

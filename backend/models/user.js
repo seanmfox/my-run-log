@@ -7,7 +7,7 @@ const ActivitySchema = new Schema(
 		distance: Number,
 		date: Date,
 		duration: Number,
-		stravaId: Number
+		_id: Number
 	}
 )
 
@@ -29,3 +29,4 @@ const UserSchema = new Schema(
 );
 
 module.exports = mongoose.model('User', UserSchema);
+// module.exports = mongoose.model('Activity', ActivitySchema);
