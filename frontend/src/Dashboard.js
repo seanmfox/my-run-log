@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { newStravaToken, stravaInitialPull } from './dbAPI';
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
 
 
 const Dashboard = props => {
@@ -12,19 +14,12 @@ const Dashboard = props => {
         refreshToken(props.user.stravaRefreshToken, props.user.userId)
       } else {
         stravaActivitySet(props.user.stravaAccessToken, props.user.userId)
-        // fetch(`https://www.strava.com/api/v3/athlete/activities`, {
-        //     method: 'GET',
-        //     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${props.user.stravaAccessToken}` }
-        //   }).then(res => res.json()).then(data => {
-        //     setActivities(data)
-        //     console.log(data)});
       }
     }
   })
 
   const refreshToken = async (refresh, userId) => {
 		const res = await newStravaToken(refresh, userId);
-    console.log(res)
 		if (res.success) {
       props.updateRefresh(res.data);
     }
@@ -47,7 +42,17 @@ const Dashboard = props => {
   return (
     <div>
       <h1>Dashboard</h1>
-      <a href={grantDomain}>Connect to Strava</a>
+      <a className={props.user.stravaEnabled ? 'hidden' : ''} href={grantDomain}>Connect to Strava</a>
+      <div className="max-w-7xl m-auto">
+        <FullCalendar
+          plugins={[ dayGridPlugin ]}
+          initialView="dayGridMonth"
+          firstDay={1}
+          events={activities.map(a => {
+            return {allDay: true, start: a.date, title: a.name, id: a._id}
+          })}
+        />
+      </div>
     </div>
 
   )
