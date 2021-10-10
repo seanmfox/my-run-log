@@ -166,7 +166,7 @@ router.post('/strava/activitypull', (req, res) => {
 		User.findById(req.body.userId, (error, user) => {
 			const activityIds = user.activities.map(a => a._id)
 			response.data.forEach(a => { 
-				if (!activityIds.includes(a.id)) {
+				if (!activityIds.includes(a.id) && a.type === 'Run') {
 					user.activities.push({
 						name: a.name,
 						distance: a.distance,
@@ -205,13 +205,15 @@ router.post('/strava/webhook', (req, res) => {
 								url: `https://www.strava.com/api/v3/activities/${req.body.object_id}`,
 								headers: {'Authorization': 'Bearer ' + response.data.access_token}
 							}).then((response) => {
-								user.activities.push({
-									name: response.data.name,
-									distance: response.data.distance,
-									date: response.data.start_date,
-									duration: response.data.moving_time,
-									_id: req.body.object_id
-								})
+								if (response.data.type === 'Run') {
+									user.activities.push({
+										name: response.data.name,
+										distance: response.data.distance,
+										date: response.data.start_date,
+										duration: response.data.moving_time,
+										_id: req.body.object_id
+									})
+								}
 								user.save(err => {
 									if (err) console.log(err);
 									console.log('saving new event')
@@ -229,13 +231,15 @@ router.post('/strava/webhook', (req, res) => {
 							url: `https://www.strava.com/api/v3/activities/${req.body.object_id}`,
 							headers: {'Authorization': 'Bearer ' + user.stravaAccessToken}
 						}).then((response) => {
-							user.activities.push({
-								name: response.data.name,
-								distance: response.data.distance,
-								date: response.data.start_date,
-								duration: response.data.moving_time,
-								_id: req.body.object_id
-							})
+							if (response.data.type === 'Run') {
+								user.activities.push({
+									name: response.data.name,
+									distance: response.data.distance,
+									date: response.data.start_date,
+									duration: response.data.moving_time,
+									_id: req.body.object_id
+								})
+							}
 							user.save(err => {
 								if (err) console.log(err);
 								console.log('saving new event')
