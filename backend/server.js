@@ -193,6 +193,7 @@ router.post('/strava/webhook', (req, res) => {
 		User.findOne({stravaAthleteId: req.body.owner_id}, (err, user) => {
 			if (user) {
 				if (req.body.aspect_type === 'create') {
+					const activityIds = user.activities.map(a => a._id)
 					if (new Date(user.stravaExpiresAt * 1000) < Date.now()) {
 						axios.post(`https://www.strava.com/oauth/token`, {client_id: 26482, client_secret: process.env.STRAVA_SECRET, refresh_token: user.stravaRefreshToken, grant_type: 'refresh_token'})
 						.then((response) => {
@@ -205,7 +206,7 @@ router.post('/strava/webhook', (req, res) => {
 								url: `https://www.strava.com/api/v3/activities/${req.body.object_id}`,
 								headers: {'Authorization': 'Bearer ' + response.data.access_token}
 							}).then((response) => {
-								if (response.data.type === 'Run') {
+								if (!activityIds.includes(req.body.object_id) && response.data.type === 'Run') {
 									user.activities.push({
 										name: response.data.name,
 										distance: response.data.distance,
@@ -231,7 +232,7 @@ router.post('/strava/webhook', (req, res) => {
 							url: `https://www.strava.com/api/v3/activities/${req.body.object_id}`,
 							headers: {'Authorization': 'Bearer ' + user.stravaAccessToken}
 						}).then((response) => {
-							if (response.data.type === 'Run') {
+							if (!activityIds.includes(req.body.object_id) && response.data.type === 'Run') {
 								user.activities.push({
 									name: response.data.name,
 									distance: response.data.distance,
