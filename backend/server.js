@@ -158,7 +158,6 @@ router.post('/strava/refresh', (req, res) => {
 })
 
 router.post('/strava/activitypull', (req, res) => {
-	console.log('pulling activities')
 	axios({
 		url: 'https://www.strava.com/api/v3/athlete/activities',
 		headers: {'Authorization': 'Bearer ' + req.body.token}

@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { newStravaToken, stravaInitialPull } from './dbAPI';
-import FullCalendar from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import Stats from './Stats'
+import EventNotes from './EventNotes'
 
 
 const Dashboard = props => {
 
   const [activities, setActivities] = useState([]);
+
+  const [modalStatus, openModal] = useState()
 
   useEffect(() => {
     if (props.user.stravaEnabled && activities.length === 0) {
@@ -16,6 +20,10 @@ const Dashboard = props => {
         stravaActivitySet(props.user.stravaAccessToken, props.user.userId)
       }
     }
+  })
+
+  useEffect(() => {
+    
   })
 
   const refreshToken = async (refresh, userId) => {
@@ -41,18 +49,33 @@ const Dashboard = props => {
 
   return (
     <div>
-      <h1>Dashboard</h1>
-      <a className={props.user.stravaEnabled ? 'hidden' : ''} href={grantDomain}>Connect to Strava</a>
-      <div className="max-w-7xl m-auto">
-        <FullCalendar
-          plugins={[ dayGridPlugin ]}
-          initialView="dayGridMonth"
-          firstDay={1}
-          events={activities.map(a => {
-            return {allDay: true, start: a.date, title: a.name, id: a._id}
-          })}
-        />
+      <div>
+        <h1>Dashboard</h1>
+        <a className={props.user.stravaEnabled ? 'hidden' : ''} href={grantDomain}>Connect to Strava</a>
+        <div className="max-w-7xl m-auto">
+        {modalStatus &&
+            <EventNotes 
+              details={modalStatus}
+            />
+          }
+          <Stats 
+            activities={activities}
+          />
+          <FullCalendar
+            plugins={[ dayGridPlugin ]}
+            initialView="dayGridMonth"
+            firstDay={1}
+            events={activities.map(a => {
+              return {allDay: true, start: a.date, title: a.name, id: a._id, distance: a.distance, duration: a.duration}
+            })}
+            eventClick={(info) => {
+              openModal(info);
+            }}
+          />
+
+        </div>
       </div>
+      {modalStatus && <div id="modalBackdrop" className='opacity-50 bg-black'></div>}
     </div>
 
   )
